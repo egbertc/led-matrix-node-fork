@@ -26,6 +26,7 @@ export enum MuxType {
 }
 
 export enum PixelMapperType {
+  Grid = 'Grid',
   Chainlink = 'Chainlink',
   U = 'U-mapper',
   Rotate = 'Rotate',
@@ -36,6 +37,7 @@ export enum PixelMapperType {
 export type PixelMapper =
   | { type: PixelMapperType.Rotate; angle: number }
   | { type: PixelMapperType.Chainlink }
+  | { type: PixelMapperType.Grid; rows: number, cols: number }
   | { type: PixelMapperType.U }
   | { type: PixelMapperType.V }
   | { type: PixelMapperType.VZ };

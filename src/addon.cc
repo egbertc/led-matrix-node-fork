@@ -2,11 +2,13 @@
 	#include "font.addon.h"
 	#include "led-matrix.addon.h"
 	#include "chain-link-pixel-mapper.cc"
+	#include "grid-pixel-mapper.cc"
 	#include <napi.h>
 
 Napi::Object Init(Napi::Env env, Napi::Object exports) {
     exports.Set("isSupported", Napi::Boolean::New(env, true));
 	rgb_matrix::RegisterPixelMapper(new ChainLinkPixelMapper());
+	rgb_matrix::RegisterPixelMapper(new GridPixelMapper());
 
 	LedMatrixAddon::Init(env, exports);
 	FontAddon::Init(env, exports);
