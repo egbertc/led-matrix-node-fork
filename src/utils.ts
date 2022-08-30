@@ -17,6 +17,8 @@ export class LedMatrixUtils {
             return PixelMapperType.VZ;
           case PixelMapperType.Grid:
             return `${PixelMapperType.Grid}:${mapper.cols}x${mapper.rows}`
+          case PixelMapperType.FlipPanel:
+            return `${PixelMapperType.FlipPanel}:${mapper.index}`
         }
       })
       .join(';');

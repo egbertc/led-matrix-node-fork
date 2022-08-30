@@ -1,7 +1,7 @@
 #include <math.h>
 #include <pixel-mapper.h>
-#include <string.h>
 #include <stdio.h>
+#include <string.h>
 
 class GridPixelMapper : public rgb_matrix::PixelMapper {
   public:
@@ -17,14 +17,15 @@ class GridPixelMapper : public rgb_matrix::PixelMapper {
 		parallel_ = parallel;
 
 		std::string params(param);
-		const int index = params.find("x");
+		const int index	 = params.find("x");
 		std::string cols = params.substr(0, index);
-		std::string rows = params.substr(index+1);
+		std::string rows = params.substr(index + 1);
 
-		try{
+		try {
 			cols_ = std::stoi(cols);
 			rows_ = std::stoi(rows);
-		}catch(...) {
+		}
+		catch (...) {
 			return false;
 		}
 
@@ -39,16 +40,34 @@ class GridPixelMapper : public rgb_matrix::PixelMapper {
 	virtual bool GetSizeMapping(int matrix_width, int matrix_height, int *visible_width, int *visible_height) const {
 		*visible_height = matrix_height * rows_;
 		*visible_width	= matrix_width / rows_;
-
-		fprintf(stderr, "matrix_width=%d matrix_height=%d rows = %d cols = %d | %d/%d\n", matrix_width, matrix_height, rows_, cols_, *visible_width, *visible_height);
+		actual_width	= *visible_width;
+		actual_height	= *visible_height;
+		fprintf(
+		  stderr,
+		  "matrix_width=%d matrix_height=%d rows = %d cols = %d | %d/%d\n",
+		  matrix_width,
+		  matrix_height,
+		  rows_,
+		  cols_,
+		  *visible_width,
+		  *visible_height);
 
 		return true;
 	}
 
 	virtual void
 	MapVisibleToMatrix(int matrix_width, int matrix_height, int x, int y, int *matrix_x, int *matrix_y) const {
-		*matrix_x = 0;//(x % matrix_width);
-		*matrix_y = 0;//(y % matrix_height);
+		int row = y / matrix_height;
+		if (row % 2 == 0) {
+			 *matrix_y = matrix_height - 1 - (y % matrix_height);
+			*matrix_x = (matrix_width - 1) - (((rows_ - row -1) * actual_width) + x);
+
+			  }
+		else {
+			*matrix_y = (y % matrix_height); //+ (matrix_height * ((row + 1)%2));
+			*matrix_x = (row * actual_width) + x;
+		}
+		if (*matrix_x >= 384 || *matrix_x < 0) { fprintf(stderr, "row: %d\n",row); }
 	}
 
   private:
@@ -56,4 +75,6 @@ class GridPixelMapper : public rgb_matrix::PixelMapper {
 	int parallel_;
 	int rows_;
 	int cols_;
+	mutable int actual_width;
+	mutable int actual_height;
 };
