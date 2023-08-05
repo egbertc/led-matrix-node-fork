@@ -39,6 +39,7 @@ class LedMatrixAddon : public Napi::ObjectWrap<LedMatrixAddon> {
 	Napi::Value width(const Napi::CallbackInfo& info);
 
 	Napi::Value sync(const Napi::CallbackInfo& info);
+	void destroy(const Napi::CallbackInfo& info);
 
 	static Napi::Value default_matrix_options(const Napi::CallbackInfo& info);
 	static Napi::Value default_runtime_options(const Napi::CallbackInfo& info);
@@ -57,6 +58,7 @@ class LedMatrixAddon : public Napi::ObjectWrap<LedMatrixAddon> {
 	Color bg_color_;
 	Font* font_;
 	std::string font_name_;
+	bool matrixDestroyed_ = false;
 	RGBMatrix* matrix_;
 	FrameCanvas* canvas_;
 	const long t_start_;

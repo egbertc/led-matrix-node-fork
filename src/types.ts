@@ -351,6 +351,7 @@ export interface LedMatrixInstance {
   setPixel(x: number, y: number): this;
 
   sync(): void;
+  destroy(): void;
 
   width(): number;
 }

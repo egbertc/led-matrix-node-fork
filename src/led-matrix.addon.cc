@@ -39,6 +39,7 @@ Napi::Object LedMatrixAddon::Init(Napi::Env env, Napi::Object exports) {
 		InstanceMethod("pwmBits", &LedMatrixAddon::pwm_bits),
 		InstanceMethod("setPixel", &LedMatrixAddon::set_pixel),
 		InstanceMethod("sync", &LedMatrixAddon::sync),
+		InstanceMethod("destroy", &LedMatrixAddon::destroy),
 		InstanceMethod("width", &LedMatrixAddon::width) });
 
 	constructor = Napi::Persistent(func);
@@ -79,8 +80,11 @@ LedMatrixAddon::LedMatrixAddon(const Napi::CallbackInfo& info)
 }
 
 LedMatrixAddon::~LedMatrixAddon(void) {
-	std::cerr << "Destroying matrix" << std::endl;
-	delete matrix_;
+	if (!matrixDestroyed_) {
+		std::cerr << "Destroying matrix" << std::endl;
+		delete matrix_;
+		matrixDestroyed_ = true;
+	}
 }
 
 Napi::Value LedMatrixAddon::sync(const Napi::CallbackInfo& info) {
@@ -163,9 +167,7 @@ Napi::Value LedMatrixAddon::brightness(const Napi::CallbackInfo& info) {
 		this->matrix_->SetBrightness(brightness);
 		return info.This();
 	}
-	else {
-		return Napi::Number::New(info.Env(), this->matrix_->brightness());
-	}
+	else { return Napi::Number::New(info.Env(), this->matrix_->brightness()); }
 }
 
 Napi::Value LedMatrixAddon::clear(const Napi::CallbackInfo& info) {
@@ -177,10 +179,16 @@ Napi::Value LedMatrixAddon::clear(const Napi::CallbackInfo& info) {
 		const auto black = Color(0, 0, 0);
 		for (auto y = y0; y <= y1; y++) { DrawLine(this->canvas_, x0, y, x1, y, black); }
 	}
-	else {
-		this->canvas_->Clear();
-	}
+	else { this->canvas_->Clear(); }
 	return info.This();
+}
+
+void LedMatrixAddon::destroy(const Napi::CallbackInfo& info) {
+	if (!matrixDestroyed_) {
+		std::cerr << "Destroying matrix" << std::endl;
+		delete matrix_;
+		matrixDestroyed_ = true;
+	}
 }
 
 Napi::Value LedMatrixAddon::draw_buffer(const Napi::CallbackInfo& info) {
@@ -274,9 +282,7 @@ Napi::Value LedMatrixAddon::fill(const Napi::CallbackInfo& info) {
 		const auto y1 = info[3].As<Napi::Number>().Uint32Value();
 		for (auto y = y0; y <= y1; y++) { DrawLine(this->canvas_, x0, y, x1, y, fg_color_); }
 	}
-	else {
-		this->canvas_->Fill(fg_color_.r, fg_color_.g, fg_color_.b);
-	}
+	else { this->canvas_->Fill(fg_color_.r, fg_color_.g, fg_color_.b); }
 	return info.This();
 }
 
@@ -294,9 +300,7 @@ Napi::Value LedMatrixAddon::luminance_correct(const Napi::CallbackInfo& info) {
 		this->matrix_->set_luminance_correct(correct);
 		return info.This();
 	}
-	else {
-		return Napi::Boolean::New(info.Env(), this->matrix_->luminance_correct());
-	}
+	else { return Napi::Boolean::New(info.Env(), this->matrix_->luminance_correct()); }
 }
 
 Napi::Value LedMatrixAddon::pwm_bits(const Napi::CallbackInfo& info) {
@@ -305,9 +309,7 @@ Napi::Value LedMatrixAddon::pwm_bits(const Napi::CallbackInfo& info) {
 		this->matrix_->SetPWMBits(bits);
 		return info.This();
 	}
-	else {
-		return Napi::Number::New(info.Env(), this->matrix_->pwmbits());
-	}
+	else { return Napi::Number::New(info.Env(), this->matrix_->pwmbits()); }
 }
 
 Napi::Value LedMatrixAddon::set_pixel(const Napi::CallbackInfo& info) {
@@ -324,9 +326,7 @@ Napi::Value LedMatrixAddon::fg_color(const Napi::CallbackInfo& info) {
 		fg_color_  = color;
 		return info.This();
 	}
-	else {
-		return LedMatrixAddon::obj_from_color(info.Env(), fg_color_);
-	}
+	else { return LedMatrixAddon::obj_from_color(info.Env(), fg_color_); }
 }
 
 Napi::Value LedMatrixAddon::bg_color(const Napi::CallbackInfo& info) {
@@ -335,9 +335,7 @@ Napi::Value LedMatrixAddon::bg_color(const Napi::CallbackInfo& info) {
 		bg_color_  = color;
 		return info.This();
 	}
-	else {
-		return LedMatrixAddon::obj_from_color(info.Env(), bg_color_);
-	}
+	else { return LedMatrixAddon::obj_from_color(info.Env(), bg_color_); }
 }
 
 Napi::Value LedMatrixAddon::font(const Napi::CallbackInfo& info) {
@@ -347,9 +345,7 @@ Napi::Value LedMatrixAddon::font(const Napi::CallbackInfo& info) {
 		font_name_	= font->name(info).ToString();
 		return info.This();
 	}
-	else {
-		return Napi::String::New(info.Env(), font_name_);
-	}
+	else { return Napi::String::New(info.Env(), font_name_); }
 }
 
 Napi::Value LedMatrixAddon::get_available_pixel_mappers(const Napi::CallbackInfo& info) {
@@ -501,9 +497,7 @@ Color LedMatrixAddon::color_from_callback_info(const Napi::CallbackInfo& info) {
 		const auto hex = info[0].As<Napi::Number>().Uint32Value();
 		return Color(0xFF & (hex >> 16), 0xFF & (hex >> 8), 0xFF & hex);
 	}
-	else {
-		throw Napi::Error::New(info.Env(), "Failed to create color from parameters.");
-	}
+	else { throw Napi::Error::New(info.Env(), "Failed to create color from parameters."); }
 }
 
 /**
